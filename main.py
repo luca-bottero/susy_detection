@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, accuracy_score
+from sklearn.metrics import mean_squared_error, accuracy_score, roc_auc_score
 import xgboost as xgb
 import time
 
@@ -38,24 +38,24 @@ GBDT = GradientBoostingClassifier(n_estimators=10, learning_rate=1.0, max_depth=
 start = time.time()
 
 dtrain = xgb.DMatrix(X_train, label = y_train)
-XGBParam = {"eta": 0.9, 
-            "objective": "reg:logistic", 
+XGBParam = {"eta": 1, 
+            "objective": "binary:hinge", 
             "max_depth" : 9, 
             "verbosity":2, 
             "tree_method":"gpu_hist",
-            "num_parallel_tree": 10}  
-XGB = xgb.train(XGBParam, dtrain, 10)
+            "num_parallel_tree": 1}
+num_round = 10
+XGB = xgb.train(XGBParam, dtrain, num_round)
 
 end = time.time()
 
 XGBScore = np.sqrt(mean_squared_error(XGB.predict(xgb.DMatrix(X_test)),y_test))
 XGBAccuracy = accuracy_score(XGB.predict(xgb.DMatrix(X_test)).round(),y_test)
+XGBAUC = roc_auc_score(XGB.predict(xgb.DMatrix(X_test)).round(),y_test)
 print("Elapsed time: " + str(end - start))
-print("Root Mean Square error: " + str(XGBScore))
+#print("Root Mean Square error: " + str(XGBScore))
 print("Fraction of correctly labeled data: " + str(XGBAccuracy))
-
-
-
+print("Area under ROC curve: " + str(XGBAUC))
 
 
 # %%
