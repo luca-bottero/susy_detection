@@ -11,16 +11,13 @@ datas.columns = ["label","lepton 1 pT"," lepton 1 eta"," lepton 1 phi"," lepton 
 #Exploratory analisys
 datas.head()
 
-datasHist = datas.hist(bins = 50, figsize = (20,20))
-plt.savefig("Datas_histograms.png", facecolor = 'white')
+datasHist = datas.hist(bins = 50, figsize = (20,20))                    #Datas distribution histograms
+plt.savefig("./Results/Datas_histograms.png", facecolor = 'white')
 
-#%%
 plt.figure(figsize = (20,20))
-datasCorr = plt.imshow(datas.corr(), cmap='viridis', interpolation='none')
+datasCorr = plt.imshow(datas.corr(), cmap='viridis', interpolation='none')  #Datas correlation matrix (default: Fischer)
 plt.colorbar(datasCorr)
-plt.savefig("Datas_corr_matrix.png", facecolor = "white")
-
-
+plt.savefig("./Results/Datas_corr_matrix.png", facecolor = "white")
 
 # %%
 
