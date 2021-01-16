@@ -2,6 +2,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
 
 #%%
 datas = pd.read_csv('./Data/SUSY.csv')
@@ -20,5 +22,22 @@ plt.colorbar(datasCorr)
 plt.savefig("./Results/Datas_corr_matrix.png", facecolor = "white")
 
 # %%
+#GRADIENT BOOSTED DECISION TREES scikitlearn
+#VERY SLOW! (about 4 min for 10 trees and max_depth = 1)
+X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.1)
+
+GBDT = GradientBoostingClassifier(n_estimators=10, learning_rate=1.0, max_depth=2, verbose = 1).fit(X_train, y_train)
+#%%
+GBDTParam = GBDT.get_params()
+#%%
+GBDTParam
+
+
+
+
+
+
+
+
 
 # %%
