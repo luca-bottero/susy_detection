@@ -4,8 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, accuracy_score
 import xgboost as xgb
+import time
 
 #%%
 datas = pd.read_csv('./Data/SUSY.csv')
@@ -25,7 +26,7 @@ plt.savefig("./Results/Datas_corr_matrix.png", facecolor = "white")
 
 #%%
 #Data preparation
-X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.1)
+X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.2)
 
 # %%
 #GRADIENT BOOSTED DECISION TREES scikitlearn
@@ -34,12 +35,24 @@ X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1
 GBDT = GradientBoostingClassifier(n_estimators=10, learning_rate=1.0, max_depth=2, verbose = 1).fit(X_train, y_train)
 
 #%%
+start = time.time()
+
 dtrain = xgb.DMatrix(X_train, label = y_train)
-XGBParam = {'eta': 1, 'objective': 'reg:logistic', "max_depth" : 5, "verbosity":2}
-XGB = xgb.train(XGBParam, dtrain, 100)
+XGBParam = {"eta": 0.9, 
+            "objective": "reg:logistic", 
+            "max_depth" : 9, 
+            "verbosity":2, 
+            "tree_method":"gpu_hist",
+            "num_parallel_tree": 10}  
+XGB = xgb.train(XGBParam, dtrain, 10)
+
+end = time.time()
 
 XGBScore = np.sqrt(mean_squared_error(XGB.predict(xgb.DMatrix(X_test)),y_test))
-print(XGBScore)
+XGBAccuracy = accuracy_score(XGB.predict(xgb.DMatrix(X_test)).round(),y_test)
+print("Elapsed time: " + str(end - start))
+print("Root Mean Square error: " + str(XGBScore))
+print("Fraction of correctly labeled data: " + str(XGBAccuracy))
 
 
 
