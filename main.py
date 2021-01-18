@@ -2,11 +2,16 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import tensorflow as tf
+import keras
+import xgboost as xgb
+import time
+from tensorflow import keras
+from tensorflow.keras import layers
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, accuracy_score, roc_auc_score
-import xgboost as xgb
-import time
+
 
 #%%
 datas = pd.read_csv('./Data/SUSY.csv')
@@ -26,13 +31,13 @@ plt.savefig("./Results/Datas_corr_matrix.png", facecolor = "white")
 
 #%%
 #Data preparation
-X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.2)
+X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.9)
 
 # %%
 #GRADIENT BOOSTED DECISION TREES scikitlearn
 #VERY SLOW! (about 4 min for 10 trees and max_depth = 1)
 
-GBDT = GradientBoostingClassifier(n_estimators=10, learning_rate=1.0, max_depth=2, verbose = 1).fit(X_train, y_train)
+#GBDT = GradientBoostingClassifier(n_estimators=10, learning_rate=1.0, max_depth=2, verbose = 1).fit(X_train, y_train)
 
 #%%
 start = time.time()
@@ -56,6 +61,30 @@ print("Elapsed time: " + str(end - start))
 #print("Root Mean Square error: " + str(XGBScore))
 print("Fraction of correctly labeled data: " + str(XGBAccuracy))
 print("Area under ROC curve: " + str(XGBAUC))
+
+
+# %%
+#NEURAL NETWORK MODEL
+
+InputNum = len(datas.columns) - 1
+
+inputs = keras.Input(shape=(InputNum,), name="Input")
+x = layers.Dense(32)(inputs)
+for i in range(0):
+    x = layers.Dense(32)(x)
+outputs = layers.Dense(1, name="Output")(x)
+
+model = keras.Model(inputs=[inputs], outputs=[outputs])
+
+#keras.utils.plot_model(model, "ex_3.png", show_shapes=True)
+
+simple_sgd = keras.optimizers.Adadelta(lr=0.01)  
+model.compile(loss='binary_crossentropy',
+  optimizer=simple_sgd, metrics=['accuracy'])
+
+max_epochs = 25
+h = model.fit(X_train, y_train, batch_size=32,
+  epochs=max_epochs, verbose = 2)
 
 
 # %%
