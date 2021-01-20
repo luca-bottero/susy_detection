@@ -69,14 +69,14 @@ print("Area under ROC curve: " + str(XGBAUC))
 InputNum = len(datas.columns) - 1
 
 inputs = keras.Input(shape=(InputNum,), name="Input")
-x = layers.Dense(32)(inputs)
-for i in range(0):
-    x = layers.Dense(32)(x)
+x = layers.Dense(20)(inputs)
+for i in range(6):
+    x = layers.Dense(20)(x)
 outputs = layers.Dense(1, name="Output")(x)
 
 model = keras.Model(inputs=[inputs], outputs=[outputs])
 
-#keras.utils.plot_model(model, "ex_3.png", show_shapes=True)
+#keras.utils.plot_model(model, "NN_model.png", show_shapes=True)
 
 simple_sgd = keras.optimizers.Adadelta(lr=0.01)  
 model.compile(loss='binary_crossentropy',
@@ -85,6 +85,28 @@ model.compile(loss='binary_crossentropy',
 max_epochs = 25
 h = model.fit(X_train, y_train, batch_size=32,
   epochs=max_epochs, verbose = 2)
+#%%
+print("Evaluate on test data")
+results = model.evaluate(X_test, y_test, batch_size=128)
+print("test loss, test acc:", results)
+
+plt.plot(h.history['loss'])
+plt.yscale('log')
+plt.title('model loss')
+plt.ylabel('log(loss)')
+plt.xlabel('epoch')
+
+# %%
+predictions = np.round(model.predict(X_test))S
+
+print(predictions)
+print(y_test)
+print(predictions != y_test)
+
+incorrects = X_test[predictions != y_test]
+incorrects
+
+# %%
 
 
 # %%
