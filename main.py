@@ -29,6 +29,7 @@ datasCorr = plt.imshow(datas.corr(), cmap='viridis', interpolation='none')  #Dat
 plt.colorbar(datasCorr)
 plt.savefig("./Results/Datas_corr_matrix.png", facecolor = "white")
 
+
 #%%
 #Data preparation
 X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.9)
@@ -68,24 +69,28 @@ print("Area under ROC curve: " + str(XGBAUC))
 
 InputNum = len(datas.columns) - 1
 
+
 inputs = keras.Input(shape=(InputNum,), name="Input")
-x = layers.Dense(20)(inputs)
-for i in range(6):
-    x = layers.Dense(20)(x)
-outputs = layers.Dense(1, name="Output")(x)
+
+x = layers.Dense(32)(inputs)
+for i in range(2):
+    #x = layers.Dense(36 + i*(5-i)*3)(x)
+    x = layers.Dense(32,activation='sigmoid')(x)
+
+outputs = layers.Dense(1,activation='sigmoid', name="Output")(x)
 
 model = keras.Model(inputs=[inputs], outputs=[outputs])
 
-#keras.utils.plot_model(model, "NN_model.png", show_shapes=True)
+model.summary()
 
-simple_sgd = keras.optimizers.Adadelta(lr=0.01)  
-model.compile(loss='binary_crossentropy',
-  optimizer=simple_sgd, metrics=['accuracy'])
-
+simple_sgd = keras.optimizers.Adadelta(lr=0.02)  
+model.compile(loss='binary_crossentropy', optimizer=simple_sgd, metrics=['accuracy'])
+ 
 max_epochs = 25
-h = model.fit(X_train, y_train, batch_size=32,
-  epochs=max_epochs, verbose = 2)
+h = model.fit(X_train, y_train, batch_size=32, epochs=max_epochs, verbose = 2)
 #%%
+keras.utils.plot_model(model, "NN_model.png", show_shapes=True)
+
 print("Evaluate on test data")
 results = model.evaluate(X_test, y_test, batch_size=128)
 print("test loss, test acc:", results)
@@ -95,9 +100,8 @@ plt.yscale('log')
 plt.title('model loss')
 plt.ylabel('log(loss)')
 plt.xlabel('epoch')
-
 # %%
-predictions = np.round(model.predict(X_test))S
+predictions = np.round(model.predict(X_test))
 
 print(predictions)
 print(y_test)
