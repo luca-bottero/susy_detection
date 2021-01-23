@@ -58,7 +58,7 @@ XGBAccuracy = accuracy_score(XGB.predict(xgb.DMatrix(X_test)).round(),y_test)   
 XGBAUC = roc_auc_score(XGB.predict(xgb.DMatrix(X_test)).round(),y_test)         #AUC score
 print("Elapsed time: " + str(end - start))
 #print("Root Mean Square error: " + str(XGBScore))
-print("Fraction of correctly labeled data: " + str(XGBAccuracy))
+print("Fraction of correctly labelled data: " + str(XGBAccuracy))
 print("Area under ROC curve: " + str(XGBAUC))
 
 # %%
@@ -82,7 +82,7 @@ model.summary()
 simple_sgd = keras.optimizers.Adadelta(lr = 0.01)  
 model.compile(loss='binary_crossentropy', optimizer=simple_sgd, metrics=['accuracy'])
  
-max_epochs = 25
+max_epochs = 5
 h = model.fit(X_train, y_train, batch_size=32, epochs=max_epochs, verbose = 2)
 
 #%%
@@ -98,36 +98,24 @@ plt.title('model loss')
 plt.ylabel('log(loss)')
 plt.xlabel('epoch')
 # %%
+#RESULTS EXPLORATORY ANALYSIS
 predictions = np.round(model.predict(X_test))
-indices = [i for i in enumerate(predictions) if predictions[i] != y_test[i]]
-#subset_of_wrongly_predicted = [X_test[i] for i in indices ]
 
-print(predictions)
-print(y_test)
-#print(subset_of_wrongly_predicted)
+result = pd.DataFrame(y_test)
+result["prediction"] = predictions
+result["correct"] = np.where(result["label"] == result["prediction"], True, False)
+result.head(20)
 
-# %%
-CorrectIdx = []   #list of correctly labeled datas
-WrongIdx = []     #list of wrongly labeled datas
+CorrectIdxs = np.where(result["correct"] == True)
+WrongIdxs = np.where(result["correct"] == False)
 
-a = time.time()
+wrongHist = datas.iloc[WrongIdxs[0]].hist(bins = 50, figsize = (20,20))   #Wrongly labelled distribution histograms
+plt.savefig("./Results/Wrong_histograms.png", facecolor = 'white')
 
-for i in range(100):
-  index = X_test.iloc[[i]].index.values
-  item = X_test.iloc[[i]].to_numpy()
-  prediction = np.round(model.predict(item))
-  truth = y_test.iloc[[i]].to_numpy()
+plt.figure(figsize = (20,20))
+wrongCorr = plt.imshow(datas.iloc[WrongIdxs[0]].corr(), cmap='viridis', interpolation='none')  #Datas correlation matrix (default: Fischer)
+plt.colorbar(wrongCorr)
+plt.savefig("./Results/Wrong_corr_matrix.png", facecolor = "white")
 
-  if prediction == truth:
-    CorrectIdx.append(index)
-  else:
-    WrongIdx.append(index)
-
-print(time.time() - a)
-
-
-# %%
 
 #%%
-print(len(CorrectIdx))
-# %%
