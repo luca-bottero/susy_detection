@@ -39,6 +39,7 @@ X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1
 #GBDT = GradientBoostingClassifier(n_estimators=10, learning_rate=1.0, max_depth=2, verbose = 1).fit(X_train, y_train)
 
 #%%
+#XGBOOST MODEL
 start = time.time()
 
 dtrain = xgb.DMatrix(X_train, label = y_train)
@@ -75,9 +76,10 @@ for i in range(2):
 
 outputs = layers.Dense(1,activation='sigmoid', name="Output")(x)
 
-model = keras.Model(inputs=[inputs], outputs=[outputs])
+model = keras.Model(inputs=[inputs], outputs=[outputs], name = "NN_model")
 
 model.summary()
+model.save("./Model/NN_model_config")
 
 simple_sgd = keras.optimizers.Adadelta(lr = 0.01)  
 model.compile(loss='binary_crossentropy', optimizer=simple_sgd, metrics=['accuracy'])
@@ -86,7 +88,8 @@ max_epochs = 5
 h = model.fit(X_train, y_train, batch_size=32, epochs=max_epochs, verbose = 2)
 
 #%%
-keras.utils.plot_model(model, "NN_model.png", show_shapes=True)
+#MODEL EVALUATION
+keras.utils.plot_model(model, "./Model/NN_model.png", show_shapes=True)
 
 print("Evaluate on test data")
 results = model.evaluate(X_test, y_test, batch_size=128)
@@ -119,3 +122,5 @@ plt.savefig("./Results/Wrong_corr_matrix.png", facecolor = "white")
 
 
 #%%
+
+# %%
