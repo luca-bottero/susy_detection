@@ -12,7 +12,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, accuracy_score, roc_auc_score
+from sklearn.metrics import mean_squared_error, accuracy_score, roc_auc_score, confusion_matrix
 from sklearn.preprocessing import PolynomialFeatures
 
 #%%
@@ -116,14 +116,20 @@ plt.legend( shadow=True, fontsize='x-large')
 plt.title('model loss')
 plt.ylabel('metrics')
 plt.xlabel('epoch')
+plt.savefig("./Results/Training_metrics.png", facecolor = 'white')
+
 # %%
-#RESULTS EXPLORATORY ANALYSIS
+#RESULTS ANALYSIS
 predictions = np.round(model.predict(X_test))
 
 result = pd.DataFrame(y_test)
 result["prediction"] = predictions
 result["correct"] = np.where(result["label"] == result["prediction"], True, False)
 result.head(20)
+
+sns.heatmap(confusion_matrix(result['correct'],result['prediction'],normalize='true'), annot=True)
+plt.savefig('./Results/Confusion_matrix.png', facecolor = 'white')
+
 
 CorrectIdxs = np.where(result["correct"] == True)
 WrongIdxs = np.where(result["correct"] == False)
