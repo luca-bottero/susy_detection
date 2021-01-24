@@ -30,8 +30,6 @@ if os.path.exists("./Results/Datas_scatter.png") == False:          #this plot i
     datasScatter = sns.pairplot(datas.sample(50000), hue = 'label', plot_kws={'alpha': 0.1}, corner = True)       #use only a small fraction (about 0.1%) of datas due to size issue
     datasScatter.savefig("./Results/Datas_scatter.png", facecolor = 'white')
 
-#%%
-
 datasHist = datas.hist(bins = 50, figsize = (20,20))                    #Datas distribution histograms
 plt.savefig("./Results/Datas_histograms.png", facecolor = 'white')
 
@@ -94,7 +92,10 @@ model.save("./Model/NN_model_config")
 
 #simple_sgd = keras.optimizers.Adadelta(lr = 0.01)  
 simple_sgd = keras.optimizers.SGD(lr = 0.015, momentum = 0.015)
-model.compile(loss='binary_crossentropy', optimizer=simple_sgd, metrics=['accuracy'])
+
+metrics = ['binary_accuracy','AUC', 'Precision']
+
+model.compile(loss='binary_crossentropy', optimizer=simple_sgd, metrics=metrics)
  
 max_epochs = 15
 h = model.fit(X_train, y_train, batch_size=32, epochs=max_epochs, verbose = 2)
@@ -104,13 +105,16 @@ h = model.fit(X_train, y_train, batch_size=32, epochs=max_epochs, verbose = 2)
 keras.utils.plot_model(model, "./Model/NN_model.png", show_shapes=True)
 
 print("Evaluate on test data")
-results = model.evaluate(X_test, y_test, batch_size=128)
+#results = model.evaluate(X_test, y_test, batch_size=128)
 print("test loss, test acc:", results)
 
-plt.plot(h.history['loss'])
-plt.yscale('log')
+#plt.plot(h.history['loss'], label = 'loss')
+plt.plot(h.history['auc'], label = "auc")
+plt.plot(h.history['binary_accuracy'], label = "accuracy")
+plt.legend( shadow=True, fontsize='x-large')
+#plt.yscale('log')
 plt.title('model loss')
-plt.ylabel('log(loss)')
+plt.ylabel('metrics')
 plt.xlabel('epoch')
 # %%
 #RESULTS EXPLORATORY ANALYSIS
