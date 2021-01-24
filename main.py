@@ -2,35 +2,46 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import tensorflow as tf
 import keras
 import xgboost as xgb
 import time
+import os
 from tensorflow import keras
 from tensorflow.keras import layers
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, accuracy_score, roc_auc_score
+from sklearn.preprocessing import PolynomialFeatures
 
 #%%
 datas = pd.read_csv('./Data/SUSY.csv')
 datas.columns = ["label","lepton 1 pT"," lepton 1 eta"," lepton 1 phi"," lepton 2 pT"," lepton 2 eta"," lepton 2 phi"," missing energy magnitude"," missing energy phi"," MET_rel"," axial MET"," M_R"," M_TR_2"," R"," MT2"," S_R"," M_Delta_R"," dPhi_r_b"," cos(theta_r1)"]
 
 #%%
-#Exploratory analisys
+#EXPLORATORY ANALYSIS
+#Data preparation
+X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.9)
+
 datas.head()
+
+if os.path.exists("./Results/Datas_scatter.png") == False:          #this plot is rather slow, so it is better not to redo every time
+    datasScatter = sns.pairplot(datas.sample(50000), hue = 'label', plot_kws={'alpha': 0.1}, corner = True)       #use only a small fraction (about 0.1%) of datas due to size issue
+    datasScatter.savefig("./Results/Datas_scatter.png", facecolor = 'white')
+
+#%%
 
 datasHist = datas.hist(bins = 50, figsize = (20,20))                    #Datas distribution histograms
 plt.savefig("./Results/Datas_histograms.png", facecolor = 'white')
 
 plt.figure(figsize = (20,20))
-datasCorr = plt.imshow(datas.corr(), cmap='viridis', interpolation='none')  #Datas correlation matrix (default: Fischer)
-plt.colorbar(datasCorr)
+#datasCorr = plt.imshow(datas.corr(), cmap='viridis', interpolation='none')  #Datas correlation matrix (default: Fischer)
+sns.heatmap(datas.corr(), annot=True, square=True, mask=np.triu(np.ones_like(datas.corr(), dtype=bool)))
 plt.savefig("./Results/Datas_corr_matrix.png", facecolor = "white")
 
-#%%
-#Data preparation
-X_train, X_test, y_train, y_test = train_test_split(datas.drop(["label"], axis=1), datas["label"], test_size = 0.9)
+PolyFeatures = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True).fit_transform(X_train,y_train)
+print(PolyFeatures)
 
 # %%
 #GRADIENT BOOSTED DECISION TREES scikitlearn
@@ -81,10 +92,11 @@ model = keras.Model(inputs=[inputs], outputs=[outputs], name = "NN_model")
 model.summary()
 model.save("./Model/NN_model_config")
 
-simple_sgd = keras.optimizers.Adadelta(lr = 0.01)  
+#simple_sgd = keras.optimizers.Adadelta(lr = 0.01)  
+simple_sgd = keras.optimizers.SGD(lr = 0.015, momentum = 0.015)
 model.compile(loss='binary_crossentropy', optimizer=simple_sgd, metrics=['accuracy'])
  
-max_epochs = 5
+max_epochs = 15
 h = model.fit(X_train, y_train, batch_size=32, epochs=max_epochs, verbose = 2)
 
 #%%
